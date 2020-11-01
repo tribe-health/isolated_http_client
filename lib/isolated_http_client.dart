@@ -1,8 +1,7 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
 library isolated_http_client;
 
-export 'src/isolated_http_client_base.dart';
+export 'package:worker_manager/worker_manager.dart';
 
-// TODO: Export any libraries intended for clients of this package.
+export 'src/exceptions.dart';
+export 'src/isolated_http_client.dart';
+export 'src/utils.dart';
