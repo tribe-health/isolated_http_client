@@ -79,9 +79,6 @@ class IsolatedHttpClient implements HttpClient {
     return Executor().execute(arg1: getBundle, fun1: _get).next((value) {
       if (log) print(value.log());
       return _checkedResponse(value);
-    }, onError: (error) {
-      if (log) print(error);
-      throw error;
     });
   }
 
@@ -117,9 +114,6 @@ class IsolatedHttpClient implements HttpClient {
     return Executor().execute(arg1: postBundle, fun1: _post).next((value) {
       if (log) print(value.log());
       return _checkedResponse(value);
-    }, onError: (error) {
-      if (log) print(error);
-      throw error;
     });
   }
 }
