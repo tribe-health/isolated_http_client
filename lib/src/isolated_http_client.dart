@@ -57,7 +57,9 @@ class IsolatedHttpClient implements HttpClient {
     final httpResponse =
         await http.get(Uri.encodeFull(url), headers: headers).timeout(timeout);
     final isolatedResponse = Response(
-        jsonDecode(httpResponse.body) as Map<String, dynamic>,
+        httpResponse.body.isNotEmpty
+            ? jsonDecode(httpResponse.body) as Map<String, dynamic>
+            : <String, dynamic>{},
         httpResponse.statusCode,
         httpResponse.headers);
     return isolatedResponse;
