@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 
-void main() async {
+Future<void> main() async {
   group('A group of tests', () {
     // await Executor().warmUp();
     // final client = HttpClient(log: true);

@@ -38,8 +38,9 @@ class IsolatedHttpClient implements HttpClient {
   Response _checkedResponse(Response response, RequestBundle requestBundle) {
     final statusCode = response.statusCode;
     if (statusCode >= 200 && statusCode < 300) return response;
-    if (statusCode == 401)
+    if (statusCode == 401) {
       throw HttpUnauthorizedException(response.body, requestBundle);
+    }
     if (statusCode >= 400 && statusCode < 500) {
       throw HttpClientException(response.body, requestBundle);
     }
