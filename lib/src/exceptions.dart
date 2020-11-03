@@ -1,33 +1,42 @@
+import '../isolated_http_client.dart';
+
 class HttpClientException implements Exception {
   final Map<String, dynamic> message;
+  final RequestBundle requestBundle;
 
-  HttpClientException(this.message);
+  HttpClientException(this.message, this.requestBundle);
 
   @override
-  String toString() => "HttpClientException: ${(message ?? '').toString()}";
+  String toString() =>
+      "HttpClientException: ${(message ?? '').toString()}\n Request: ${requestBundle.toString()}";
 }
 
 class HttpUnauthorizedException implements Exception {
   final Map<String, dynamic> message;
+  final RequestBundle requestBundle;
 
-  HttpUnauthorizedException(this.message);
+  HttpUnauthorizedException(this.message, this.requestBundle);
   @override
   String toString() =>
-      "HttpUnauthorizedException: ${(message ?? '').toString()}";
+      "HttpUnauthorizedException: ${(message ?? '').toString()}\n Request: ${requestBundle.toString()}";
 }
 
 class HttpServerException implements Exception {
   final Map<String, dynamic> message;
+  final RequestBundle requestBundle;
 
-  HttpServerException(this.message);
+  HttpServerException(this.message, this.requestBundle);
   @override
-  String toString() => "HttpServerException: ${(message ?? '').toString()}";
+  String toString() =>
+      "HttpServerException: ${(message ?? '').toString()}\n Request: ${requestBundle.toString()}";
 }
 
 class HttpUnknownException implements Exception {
   final Map<String, dynamic> message;
+  final RequestBundle requestBundle;
 
-  HttpUnknownException(this.message);
+  HttpUnknownException(this.message, this.requestBundle);
   @override
-  String toString() => "HttpUnknownException: ${(message ?? '').toString()}";
+  String toString() =>
+      "HttpUnknownException: ${(message ?? '').toString()}\n Request: ${requestBundle.toString()}";
 }

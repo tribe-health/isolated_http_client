@@ -35,17 +35,18 @@ class IsolatedHttpClient implements HttpClient {
 
   IsolatedHttpClient({this.timeout, this.log});
 
-  Response _checkedResponse(Response response) {
+  Response _checkedResponse(Response response, RequestBundle requestBundle) {
     final statusCode = response.statusCode;
     if (statusCode >= 200 && statusCode < 300) return response;
-    if (statusCode == 401) throw HttpUnauthorizedException(response.body);
+    if (statusCode == 401)
+      throw HttpUnauthorizedException(response.body, requestBundle);
     if (statusCode >= 400 && statusCode < 500) {
-      throw HttpClientException(response.body);
+      throw HttpClientException(response.body, requestBundle);
     }
     if (statusCode >= 500 && statusCode < 600) {
-      throw HttpServerException(response.body);
+      throw HttpServerException(response.body, requestBundle);
     }
-    throw HttpUnknownException(response.body);
+    throw HttpUnknownException(response.body, requestBundle);
   }
 
   static Future<Response> _get(
@@ -80,7 +81,7 @@ class IsolatedHttpClient implements HttpClient {
     final getBundle = RequestBundle(fullPath, query, headers, timeout, null);
     return Executor().execute(arg1: getBundle, fun1: _get).next((value) {
       if (log) print(value.log());
-      return _checkedResponse(value);
+      return _checkedResponse(value, getBundle);
     });
   }
 
@@ -117,7 +118,7 @@ class IsolatedHttpClient implements HttpClient {
     final postBundle = RequestBundle(fullPath, query, headers, timeout, body);
     return Executor().execute(arg1: postBundle, fun1: _post).next((value) {
       if (log) print(value.log());
-      return _checkedResponse(value);
+      return _checkedResponse(value, postBundle);
     });
   }
 }
