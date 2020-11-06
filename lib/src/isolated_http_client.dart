@@ -79,7 +79,8 @@ class IsolatedHttpClient implements HttpClient {
       print('path: $fullPath,\nheaders: $headers');
     }
     final getBundle = RequestBundle(fullPath, query, headers, timeout, null);
-    return Executor().execute(arg1: getBundle, fun1: _get).next((value) {
+    return Executor().execute(arg1: getBundle, fun1: _get).next(
+        onValue: (value) {
       if (log) print(value.log());
       return _checkedResponse(value, getBundle);
     });
@@ -115,7 +116,8 @@ class IsolatedHttpClient implements HttpClient {
     final fullPath = '$host$path$queryString';
     if (log) print('path: $fullPath,\nheaders: $headers, \nbody: $body');
     final postBundle = RequestBundle(fullPath, query, headers, timeout, body);
-    return Executor().execute(arg1: postBundle, fun1: _post).next((value) {
+    return Executor().execute(arg1: postBundle, fun1: _post).next(
+        onValue: (value) {
       if (log) print(value.log());
       return _checkedResponse(value, postBundle);
     });
