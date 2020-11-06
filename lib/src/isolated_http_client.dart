@@ -72,8 +72,7 @@ class IsolatedHttpClient implements HttpClient {
       {@required String host,
       String path = '',
       Map<String, String> query,
-      Map<String, String> headers,
-      void Function(Object e) onError}) {
+      Map<String, String> headers}) {
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
     if (log) {
@@ -83,8 +82,6 @@ class IsolatedHttpClient implements HttpClient {
     return Executor().execute(arg1: getBundle, fun1: _get).next((value) {
       if (log) print(value.log());
       return _checkedResponse(value, getBundle);
-    }, onError: (e) {
-      onError?.call(e);
     });
   }
 
@@ -113,8 +110,7 @@ class IsolatedHttpClient implements HttpClient {
       String path = '',
       Map<String, String> query,
       Map<String, String> headers,
-      @required Object body,
-      void Function(Object e) onError}) {
+      @required Object body}) {
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
     if (log) print('path: $fullPath,\nheaders: $headers, \nbody: $body');
@@ -122,8 +118,6 @@ class IsolatedHttpClient implements HttpClient {
     return Executor().execute(arg1: postBundle, fun1: _post).next((value) {
       if (log) print(value.log());
       return _checkedResponse(value, postBundle);
-    }, onError: (e) {
-      onError?.call(e);
     });
   }
 }
