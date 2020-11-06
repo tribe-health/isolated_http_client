@@ -135,6 +135,11 @@ class RequestBundle {
         query = query ?? <String, String>{},
         timeout = timeout ?? const Duration(seconds: 5),
         headers = headers ?? <String, String>{};
+
+  @override
+  String toString() {
+    return 'url : $url\nquery: $query\nheaders: $headers\ntimeout: $timeout\n body: $body';
+  }
 }
 
 class Response {
@@ -143,4 +148,9 @@ class Response {
   final int statusCode;
 
   Response(this.body, this.statusCode, this.headers);
+
+  @override
+  String toString() {
+    return 'statusCode : $statusCode\nheaders: $headers\n body: $body';
+  }
 }
