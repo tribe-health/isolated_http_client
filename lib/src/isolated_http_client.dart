@@ -25,7 +25,7 @@ abstract class HttpClient {
     String path,
     Map<String, String> query,
     Map<String, String> headers,
-    Map<String, Object> body,
+    Map<String, Object> body = const <String, dynamic>{},
   });
 }
 
@@ -95,7 +95,8 @@ class IsolatedHttpClient implements HttpClient {
     final body = bundle.body;
     final httpResponse = await http
         .post(Uri.encodeFull(url),
-            headers: headers, body: body.isEmpty ? null : jsonEncode(body))
+            headers: headers,
+            body: (body?.isEmpty ?? true) ? null : jsonEncode(body))
         .timeout(timeout);
     final isolatedResponse = Response(
         httpResponse.body.isNotEmpty
@@ -112,7 +113,7 @@ class IsolatedHttpClient implements HttpClient {
       String path = '',
       Map<String, String> query,
       Map<String, String> headers,
-      @required Map<String, Object> body}) {
+      Map<String, Object> body = const <String, dynamic>{}}) {
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
     if (log) print('path: $fullPath,\nheaders: $headers, \nbody: $body');
