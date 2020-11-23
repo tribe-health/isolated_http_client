@@ -25,7 +25,7 @@ abstract class HttpClient {
     String path,
     Map<String, String> query,
     Map<String, String> headers,
-    Object body,
+    Map<String, Object> body,
   });
 }
 
@@ -78,7 +78,7 @@ class IsolatedHttpClient implements HttpClient {
     if (log) {
       print('path: $fullPath,\nheaders: $headers');
     }
-    final getBundle = RequestBundle(fullPath, query, headers, timeout, null);
+    final getBundle = RequestBundle(fullPath, query, headers, timeout);
     return Executor().execute(arg1: getBundle, fun1: _get).next(
         onValue: (value) {
       if (log) print(value.log());
@@ -94,7 +94,8 @@ class IsolatedHttpClient implements HttpClient {
     final timeout = bundle.timeout;
     final body = bundle.body;
     final httpResponse = await http
-        .post(Uri.encodeFull(url), headers: headers, body: body)
+        .post(Uri.encodeFull(url),
+            headers: headers, body: body.isEmpty ? null : jsonEncode(body))
         .timeout(timeout);
     final isolatedResponse = Response(
         httpResponse.body.isNotEmpty
@@ -111,11 +112,12 @@ class IsolatedHttpClient implements HttpClient {
       String path = '',
       Map<String, String> query,
       Map<String, String> headers,
-      @required Object body}) {
+      @required Map<String, Object> body}) {
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
     if (log) print('path: $fullPath,\nheaders: $headers, \nbody: $body');
-    final postBundle = RequestBundle(fullPath, query, headers, timeout, body);
+    final postBundle =
+        RequestBundle(fullPath, query, headers, timeout, body: body);
     return Executor().execute(arg1: postBundle, fun1: _post).next(
         onValue: (value) {
       if (log) print(value.log());
@@ -129,10 +131,11 @@ class RequestBundle {
   final Map<String, String> query;
   final Map<String, String> headers;
   final Duration timeout;
-  final Object body;
+  final Map<String, Object> body;
 
   RequestBundle(String url, Map<String, String> query,
-      Map<String, String> headers, Duration timeout, this.body)
+      Map<String, String> headers, Duration timeout,
+      {this.body = const <String, dynamic>{}})
       : url = url ?? '',
         query = query ?? <String, String>{},
         timeout = timeout ?? const Duration(seconds: 5),

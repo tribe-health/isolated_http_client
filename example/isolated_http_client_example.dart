@@ -8,7 +8,7 @@ void main() async {
   final r = await client.get(
       host: 'https://postman-echo.com/get?foo1=bar1&foo2=bar2');
   print(r.body);
-  final r2 =
-      await client.post(host: 'https://postman-echo.com/post', body: '123');
+  final r2 = await client
+      .post(host: 'https://postman-echo.com/post', body: {'data': 123});
   print(r2.body);
 }
