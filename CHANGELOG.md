@@ -1,3 +1,2 @@
-## 1.0.0
-
-- Initial version, created by Stagehand
+## 1.2.4
+- added fake flag

@@ -18,6 +18,7 @@ abstract class HttpClient {
     String path,
     Map<String, String> query,
     Map<String, String> headers,
+    bool fakeIsolate = false,
   });
 
   Cancelable<Response> post({
@@ -26,6 +27,7 @@ abstract class HttpClient {
     Map<String, String> query,
     Map<String, String> headers,
     Map<String, Object> body = const <String, dynamic>{},
+    bool fakeIsolate = false,
   });
 }
 
@@ -68,17 +70,26 @@ class IsolatedHttpClient implements HttpClient {
   }
 
   @override
-  Cancelable<Response> get(
-      {@required String host,
-      String path = '',
-      Map<String, String> query,
-      Map<String, String> headers}) {
+  Cancelable<Response> get({
+    @required String host,
+    String path = '',
+    Map<String, String> query,
+    Map<String, String> headers,
+    bool fakeIsolate = false,
+  }) {
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
     if (log) {
       print('path: $fullPath,\nheaders: $headers');
     }
     final getBundle = RequestBundle(fullPath, query, headers, timeout);
+    if (fakeIsolate) {
+      return Executor().fakeExecute(arg1: getBundle, fun1: _get).next(
+          onValue: (value) {
+        if (log) print(value.log());
+        return _checkedResponse(value, getBundle);
+      });
+    }
     return Executor().execute(arg1: getBundle, fun1: _get).next(
         onValue: (value) {
       if (log) print(value.log());
@@ -108,17 +119,26 @@ class IsolatedHttpClient implements HttpClient {
   }
 
   @override
-  Cancelable<Response> post(
-      {@required String host,
-      String path = '',
-      Map<String, String> query,
-      Map<String, String> headers,
-      Map<String, Object> body = const <String, dynamic>{}}) {
+  Cancelable<Response> post({
+    @required String host,
+    String path = '',
+    Map<String, String> query,
+    Map<String, String> headers,
+    Map<String, Object> body = const <String, dynamic>{},
+    bool fakeIsolate = false,
+  }) {
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
     if (log) print('path: $fullPath,\nheaders: $headers, \nbody: $body');
     final postBundle =
         RequestBundle(fullPath, query, headers, timeout, body: body);
+    if (fakeIsolate) {
+      return Executor().fakeExecute(arg1: postBundle, fun1: _post).next(
+          onValue: (value) {
+        if (log) print(value.log());
+        return _checkedResponse(value, postBundle);
+      });
+    }
     return Executor().execute(arg1: postBundle, fun1: _post).next(
         onValue: (value) {
       if (log) print(value.log());
