@@ -60,13 +60,16 @@ class IsolatedHttpClient implements HttpClient {
     final timeout = bundle.timeout;
     final httpResponse =
         await http.get(Uri.encodeFull(url), headers: headers).timeout(timeout);
-    final isolatedResponse = Response(
-        httpResponse.body.isNotEmpty
-            ? jsonDecode(httpResponse.body) as Map<String, dynamic>
-            : <String, dynamic>{},
-        httpResponse.statusCode,
-        httpResponse.headers);
-    return isolatedResponse;
+    try {
+      final body = httpResponse.body.isNotEmpty
+          ? jsonDecode(httpResponse.body) as Map<String, dynamic>
+          : <String, dynamic>{};
+      final isolatedResponse =
+          Response(body, httpResponse.statusCode, httpResponse.headers);
+      return isolatedResponse;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
@@ -103,19 +106,22 @@ class IsolatedHttpClient implements HttpClient {
     final url = bundle.url;
     final headers = bundle.headers;
     final timeout = bundle.timeout;
-    final body = bundle.body;
-    final httpResponse = await http
-        .post(Uri.encodeFull(url),
-            headers: headers,
-            body: (body?.isEmpty ?? true) ? null : jsonEncode(body))
-        .timeout(timeout);
-    final isolatedResponse = Response(
-        httpResponse.body.isNotEmpty
-            ? jsonDecode(httpResponse.body) as Map<String, dynamic>
-            : <String, dynamic>{},
-        httpResponse.statusCode,
-        httpResponse.headers);
-    return isolatedResponse;
+    try {
+      final requestBody = bundle.body;
+      final encodedBody =
+          (requestBody?.isEmpty ?? true) ? null : jsonEncode(requestBody);
+      final httpResponse = await http
+          .post(Uri.encodeFull(url), headers: headers, body: encodedBody)
+          .timeout(timeout);
+      final body = httpResponse.body.isNotEmpty
+          ? jsonDecode(httpResponse.body) as Map<String, dynamic>
+          : <String, dynamic>{};
+      final isolatedResponse =
+          Response(body, httpResponse.statusCode, httpResponse.headers);
+      return isolatedResponse;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
