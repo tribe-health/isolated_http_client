@@ -52,9 +52,7 @@ class IsolatedHttpClient implements HttpClient {
     throw HttpUnknownException(response.body, requestBundle);
   }
 
-  static Future<Response> _get(
-    RequestBundle bundle,
-  ) async {
+  static Future<Response> _get(RequestBundle bundle, bool log) async {
     final url = bundle.url;
     final headers = bundle.headers;
     final timeout = bundle.timeout;
@@ -66,6 +64,9 @@ class IsolatedHttpClient implements HttpClient {
           : <String, dynamic>{};
       final isolatedResponse =
           Response(body, httpResponse.statusCode, httpResponse.headers);
+      if (log) {
+        print(isolatedResponse);
+      }
       return isolatedResponse;
     } catch (e) {
       rethrow;
@@ -82,27 +83,21 @@ class IsolatedHttpClient implements HttpClient {
   }) {
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
-    if (log) {
-      print('path: $fullPath,\nheaders: $headers');
-    }
     final getBundle = RequestBundle(fullPath, query, headers, timeout);
     if (fakeIsolate) {
-      return Executor().fakeExecute(arg1: getBundle, fun1: _get).next(
-          onValue: (value) {
-        if (log) print(value.log());
+      return Executor()
+          .fakeExecute(arg1: getBundle, arg2: log, fun2: _get)
+          .next(onValue: (value) {
         return _checkedResponse(value, getBundle);
       });
     }
-    return Executor().execute(arg1: getBundle, fun1: _get).next(
+    return Executor().execute(arg1: getBundle, arg2: log, fun2: _get).next(
         onValue: (value) {
-      if (log) print(value.log());
       return _checkedResponse(value, getBundle);
     });
   }
 
-  static Future<Response> _post(
-    RequestBundle bundle,
-  ) async {
+  static Future<Response> _post(RequestBundle bundle, bool log) async {
     final url = bundle.url;
     final headers = bundle.headers;
     final timeout = bundle.timeout;
@@ -110,14 +105,21 @@ class IsolatedHttpClient implements HttpClient {
       final requestBody = bundle.body;
       final encodedBody =
           (requestBody?.isEmpty ?? true) ? null : jsonEncode(requestBody);
+      if (log) {
+        print('path: $url,\nheaders: $headers, \nbody: $encodedBody');
+      }
       final httpResponse = await http
           .post(Uri.encodeFull(url), headers: headers, body: encodedBody)
           .timeout(timeout);
       final body = httpResponse.body.isNotEmpty
           ? jsonDecode(httpResponse.body) as Map<String, dynamic>
           : <String, dynamic>{};
+
       final isolatedResponse =
           Response(body, httpResponse.statusCode, httpResponse.headers);
+      if (log) {
+        print(isolatedResponse);
+      }
       return isolatedResponse;
     } catch (e) {
       rethrow;
@@ -135,19 +137,17 @@ class IsolatedHttpClient implements HttpClient {
   }) {
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
-    if (log) print('path: $fullPath,\nheaders: $headers, \nbody: $body');
     final postBundle =
         RequestBundle(fullPath, query, headers, timeout, body: body);
     if (fakeIsolate) {
-      return Executor().fakeExecute(arg1: postBundle, fun1: _post).next(
-          onValue: (value) {
-        if (log) print(value.log());
+      return Executor()
+          .fakeExecute(arg1: postBundle, arg2: log, fun2: _post)
+          .next(onValue: (value) {
         return _checkedResponse(value, postBundle);
       });
     }
-    return Executor().execute(arg1: postBundle, fun1: _post).next(
+    return Executor().execute(arg1: postBundle, arg2: log, fun2: _post).next(
         onValue: (value) {
-      if (log) print(value.log());
       return _checkedResponse(value, postBundle);
     });
   }
