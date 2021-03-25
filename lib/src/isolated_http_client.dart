@@ -58,6 +58,9 @@ class IsolatedHttpClient implements HttpClient {
     final timeout = bundle.timeout;
     final httpResponse =
         await http.get(Uri.encodeFull(url), headers: headers).timeout(timeout);
+    if (log) {
+      print('path: $url,\nheaders: $headers');
+    }
     try {
       final body = httpResponse.body.isNotEmpty
           ? jsonDecode(httpResponse.body) as Map<String, dynamic>
