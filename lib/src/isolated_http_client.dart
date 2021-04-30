@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import 'package:isolated_http_client/src/utils.dart';
-import 'package:meta/meta.dart';
 import 'package:worker_manager/worker_manager.dart';
 
 import 'exceptions.dart';
@@ -11,10 +9,10 @@ import 'exceptions.dart';
 abstract class HttpClient {
   factory HttpClient(
           {Duration timeout = const Duration(seconds: 10), bool log = false}) =>
-      IsolatedHttpClient(timeout: timeout, log: log);
+      IsolatedHttpClient(timeout, log);
 
   Cancelable<Response> get({
-    @required String host,
+    required String host,
     String path,
     Map<String, String> query,
     Map<String, String> headers,
@@ -22,11 +20,11 @@ abstract class HttpClient {
   });
 
   Cancelable<Response> post({
-    @required String host,
+    required String host,
     String path,
     Map<String, String> query,
     Map<String, String> headers,
-    Map<String, Object> body = const <String, dynamic>{},
+    Map<String, Object> body = const <String, Object>{},
     bool fakeIsolate = false,
   });
 }
@@ -35,7 +33,7 @@ class IsolatedHttpClient implements HttpClient {
   final Duration timeout;
   final bool log;
 
-  IsolatedHttpClient({this.timeout, this.log});
+  IsolatedHttpClient(this.timeout, this.log);
 
   Response _checkedResponse(Response response, RequestBundle requestBundle) {
     final statusCode = response.statusCode;
@@ -57,7 +55,7 @@ class IsolatedHttpClient implements HttpClient {
     final headers = bundle.headers;
     final timeout = bundle.timeout;
     final httpResponse =
-        await http.get(Uri.encodeFull(url), headers: headers).timeout(timeout);
+        await http.get(Uri.parse(url), headers: headers).timeout(timeout);
     if (log) {
       print('path: $url,\nheaders: $headers');
     }
@@ -78,10 +76,10 @@ class IsolatedHttpClient implements HttpClient {
 
   @override
   Cancelable<Response> get({
-    @required String host,
+    required String host,
     String path = '',
-    Map<String, String> query,
-    Map<String, String> headers,
+    Map<String, String> query = const <String, String>{},
+    Map<String, String> headers = const <String, String>{},
     bool fakeIsolate = false,
   }) {
     final queryString = makeQuery(query);
@@ -107,12 +105,12 @@ class IsolatedHttpClient implements HttpClient {
     try {
       final requestBody = bundle.body;
       final encodedBody =
-          (requestBody?.isEmpty ?? true) ? null : jsonEncode(requestBody);
+          (requestBody.isEmpty) ? null : jsonEncode(requestBody);
       if (log) {
         print('path: $url,\nheaders: $headers, \nbody: $encodedBody');
       }
       final httpResponse = await http
-          .post(Uri.encodeFull(url), headers: headers, body: encodedBody)
+          .post(Uri.parse(url), headers: headers, body: encodedBody)
           .timeout(timeout);
       final body = httpResponse.body.isNotEmpty
           ? jsonDecode(httpResponse.body) as Map<String, dynamic>
@@ -131,11 +129,11 @@ class IsolatedHttpClient implements HttpClient {
 
   @override
   Cancelable<Response> post({
-    @required String host,
+    required String host,
     String path = '',
-    Map<String, String> query,
-    Map<String, String> headers,
-    Map<String, Object> body = const <String, dynamic>{},
+    Map<String, String> query = const <String, String>{},
+    Map<String, String> headers = const <String, String>{},
+    Map<String, Object> body = const <String, Object>{},
     bool fakeIsolate = false,
   }) {
     final queryString = makeQuery(query);
@@ -165,11 +163,11 @@ class RequestBundle {
 
   RequestBundle(String url, Map<String, String> query,
       Map<String, String> headers, Duration timeout,
-      {this.body = const <String, dynamic>{}})
-      : url = url ?? '',
-        query = query ?? <String, String>{},
-        timeout = timeout ?? const Duration(seconds: 5),
-        headers = headers ?? <String, String>{};
+      {this.body = const <String, Object>{}})
+      : url = url,
+        query = query,
+        timeout = timeout,
+        headers = headers;
 
   @override
   String toString() {

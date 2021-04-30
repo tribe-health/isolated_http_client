@@ -9,7 +9,7 @@ extension Log on Response {
 }
 
 String makeQuery(Map<String, String> queryParameters) {
-  if (queryParameters == null || queryParameters.isEmpty) {
+  if (queryParameters.isEmpty) {
     return '';
   }
   final result = StringBuffer('?');
@@ -18,16 +18,14 @@ String makeQuery(Map<String, String> queryParameters) {
     result.write(separator);
     separator = '&';
     result.write(key);
-    if (value != null && value.isNotEmpty) {
+    if (value.isNotEmpty) {
       result.write('=');
       result.write(value);
     }
   }
 
   queryParameters.forEach((key, value) {
-    if (value != null) {
-      writeParameter(key, value);
-    }
+    writeParameter(key, value);
   });
   return result.toString();
 }
