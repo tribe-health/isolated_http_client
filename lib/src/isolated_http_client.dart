@@ -24,7 +24,7 @@ abstract class HttpClient {
     String path,
     Map<String, String> query,
     Map<String, String> headers,
-    Map<String, Object> body = const <String, Object>{},
+    Map<String, dynamic> body = const <String, Object>{},
     bool fakeIsolate = false,
   });
 }
@@ -133,7 +133,7 @@ class IsolatedHttpClient implements HttpClient {
     String path = '',
     Map<String, String> query = const <String, String>{},
     Map<String, String> headers = const <String, String>{},
-    Map<String, Object> body = const <String, Object>{},
+    Map<String, dynamic> body = const <String, dynamic>{},
     bool fakeIsolate = false,
   }) {
     final queryString = makeQuery(query);
@@ -159,11 +159,11 @@ class RequestBundle {
   final Map<String, String> query;
   final Map<String, String> headers;
   final Duration timeout;
-  final Map<String, Object> body;
+  final Map<String, dynamic> body;
 
   RequestBundle(String url, Map<String, String> query,
       Map<String, String> headers, Duration timeout,
-      {this.body = const <String, Object>{}})
+      {this.body = const <String, dynamic>{}})
       : url = url,
         query = query,
         timeout = timeout,
