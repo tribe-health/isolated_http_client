@@ -1,4 +1,4 @@
-import '../isolated_http_client.dart';
+import 'requests.dart';
 
 class HttpClientException implements Exception {
   final Map<String, dynamic>? message;

@@ -1,4 +1,4 @@
-import '../isolated_http_client.dart';
+import 'response.dart';
 
 String bearer(String token) => 'bearer $token';
 

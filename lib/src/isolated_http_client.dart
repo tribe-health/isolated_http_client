@@ -5,10 +5,10 @@ import 'package:isolated_http_client/isolated_http_client.dart';
 import 'package:isolated_http_client/src/utils.dart';
 import 'package:worker_manager/worker_manager.dart';
 
-export 'exceptions.dart';
-export 'http_method.dart';
-export 'response.dart';
-export 'requests.dart';
+import 'exceptions.dart';
+import 'http_method.dart';
+import 'response.dart';
+import 'requests.dart';
 
 abstract class HttpClient {
   factory HttpClient(
