@@ -2,7 +2,7 @@ import '../isolated_http_client.dart';
 
 class HttpClientException implements Exception {
   final Map<String, dynamic>? message;
-  final RequestBundle? requestBundle;
+  final BaseRequestBundle? requestBundle;
 
   HttpClientException(this.message, this.requestBundle);
 
@@ -13,7 +13,7 @@ class HttpClientException implements Exception {
 
 class HttpUnauthorizedException implements Exception {
   final Map<String, dynamic>? message;
-  final RequestBundle? requestBundle;
+  final BaseRequestBundle? requestBundle;
 
   HttpUnauthorizedException(this.message, this.requestBundle);
   @override
@@ -23,7 +23,7 @@ class HttpUnauthorizedException implements Exception {
 
 class HttpServerException implements Exception {
   final Map<String, dynamic>? message;
-  final RequestBundle? requestBundle;
+  final BaseRequestBundle? requestBundle;
 
   HttpServerException(this.message, this.requestBundle);
   @override
@@ -33,7 +33,7 @@ class HttpServerException implements Exception {
 
 class HttpUnknownException implements Exception {
   final Map<String, dynamic>? message;
-  final RequestBundle? requestBundle;
+  final BaseRequestBundle? requestBundle;
 
   HttpUnknownException(this.message, this.requestBundle);
   @override
