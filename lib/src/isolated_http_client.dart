@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:isolated_http_client/isolated_http_client.dart';
 import 'package:isolated_http_client/src/utils.dart';
 import 'package:worker_manager/worker_manager.dart';
 
 import 'exceptions.dart';
+import 'http_method.dart';
+import 'response.dart';
+import 'requests.dart';
 
 abstract class HttpClient {
   factory HttpClient(
@@ -12,6 +16,14 @@ abstract class HttpClient {
       IsolatedHttpClient(timeout, log);
 
   Cancelable<Response> get({
+    required String host,
+    String path,
+    Map<String, String> query,
+    Map<String, String> headers,
+    bool fakeIsolate = false,
+  });
+
+  Cancelable<Response> head({
     required String host,
     String path,
     Map<String, String> query,
@@ -27,6 +39,38 @@ abstract class HttpClient {
     Map<String, dynamic> body = const <String, Object>{},
     bool fakeIsolate = false,
   });
+
+  Cancelable<Response> put({
+    required String host,
+    String path,
+    Map<String, String> query,
+    Map<String, String> headers,
+    Map<String, dynamic> body = const <String, Object>{},
+    bool fakeIsolate = false,
+  });
+
+  Cancelable<Response> delete({
+    required String host,
+    String path,
+    Map<String, String> query,
+    Map<String, String> headers,
+    Map<String, dynamic> body = const <String, Object>{},
+    bool fakeIsolate = false,
+  });
+
+  Cancelable<Response> patch({
+    required String host,
+    String path,
+    Map<String, String> query,
+    Map<String, String> headers,
+    Map<String, dynamic> body = const <String, Object>{},
+    bool fakeIsolate = false,
+  });
+
+  Cancelable<Response> request({
+    required BaseRequestBundle bundle,
+    bool fakeIsolate = false,
+  });
 }
 
 class IsolatedHttpClient implements HttpClient {
@@ -35,7 +79,8 @@ class IsolatedHttpClient implements HttpClient {
 
   IsolatedHttpClient(this.timeout, this.log);
 
-  Response _checkedResponse(Response response, RequestBundle requestBundle) {
+  Response _checkedResponse(
+      Response response, BaseRequestBundle requestBundle) {
     final statusCode = response.statusCode;
     if (statusCode >= 200 && statusCode < 300) return response;
     if (statusCode == 401) {
@@ -50,30 +95,6 @@ class IsolatedHttpClient implements HttpClient {
     throw HttpUnknownException(response.body, requestBundle);
   }
 
-  static Future<Response> _get(RequestBundle bundle, bool log) async {
-    final url = bundle.url;
-    final headers = bundle.headers;
-    final timeout = bundle.timeout;
-    final httpResponse =
-        await http.get(Uri.parse(url), headers: headers).timeout(timeout);
-    if (log) {
-      print('path: $url,\nheaders: $headers');
-    }
-    try {
-      final body = httpResponse.body.isNotEmpty
-          ? jsonDecode(httpResponse.body) as Map<String, dynamic>
-          : <String, dynamic>{};
-      final isolatedResponse =
-          Response(body, httpResponse.statusCode, httpResponse.headers);
-      if (log) {
-        print(isolatedResponse);
-      }
-      return isolatedResponse;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
   @override
   Cancelable<Response> get({
     required String host,
@@ -82,49 +103,32 @@ class IsolatedHttpClient implements HttpClient {
     Map<String, String> headers = const <String, String>{},
     bool fakeIsolate = false,
   }) {
-    final queryString = makeQuery(query);
-    final fullPath = '$host$path$queryString';
-    final getBundle = RequestBundle(fullPath, query, headers, timeout);
-    if (fakeIsolate) {
-      return Executor()
-          .fakeExecute(arg1: getBundle, arg2: log, fun2: _get)
-          .next(onValue: (value) {
-        return _checkedResponse(value, getBundle);
-      });
-    }
-    return Executor().execute(arg1: getBundle, arg2: log, fun2: _get).next(
-        onValue: (value) {
-      return _checkedResponse(value, getBundle);
-    });
+    return _send(
+      method: HttpMethod.get,
+      host: host,
+      path: path,
+      query: query,
+      headers: headers,
+      fakeIsolate: fakeIsolate,
+    );
   }
 
-  static Future<Response> _post(RequestBundle bundle, bool log) async {
-    final url = bundle.url;
-    final headers = bundle.headers;
-    final timeout = bundle.timeout;
-    try {
-      final requestBody = bundle.body;
-      final encodedBody =
-          (requestBody.isEmpty) ? null : jsonEncode(requestBody);
-      if (log) {
-        print('path: $url,\nheaders: $headers, \nbody: $encodedBody');
-      }
-      final httpResponse = await http
-          .post(Uri.parse(url), headers: headers, body: encodedBody)
-          .timeout(timeout);
-      final body = httpResponse.body.isNotEmpty
-          ? jsonDecode(httpResponse.body) as Map<String, dynamic>
-          : <String, dynamic>{};
-
-      final isolatedResponse =
-          Response(body, httpResponse.statusCode, httpResponse.headers);
-      if (log) {
-        print(isolatedResponse);
-      }
-      return isolatedResponse;
-    } catch (e) {
-      rethrow;
-    }
+  @override
+  Cancelable<Response> head({
+    required String host,
+    String path = '',
+    Map<String, String> query = const <String, String>{},
+    Map<String, String> headers = const <String, String>{},
+    bool fakeIsolate = false,
+  }) {
+    return _send(
+      method: HttpMethod.head,
+      host: host,
+      path: path,
+      query: query,
+      headers: headers,
+      fakeIsolate: fakeIsolate,
+    );
   }
 
   @override
@@ -136,54 +140,139 @@ class IsolatedHttpClient implements HttpClient {
     Map<String, dynamic> body = const <String, dynamic>{},
     bool fakeIsolate = false,
   }) {
+    return _send(
+      method: HttpMethod.post,
+      host: host,
+      path: path,
+      query: query,
+      headers: headers,
+      body: body,
+      fakeIsolate: fakeIsolate,
+    );
+  }
+
+  @override
+  Cancelable<Response> put({
+    required String host,
+    String path = '',
+    Map<String, String> query = const <String, String>{},
+    Map<String, String> headers = const <String, String>{},
+    Map<String, dynamic> body = const <String, dynamic>{},
+    bool fakeIsolate = false,
+  }) {
+    return _send(
+      method: HttpMethod.put,
+      host: host,
+      path: path,
+      query: query,
+      headers: headers,
+      body: body,
+      fakeIsolate: fakeIsolate,
+    );
+  }
+
+  @override
+  Cancelable<Response> delete({
+    required String host,
+    String path = '',
+    Map<String, String> query = const <String, String>{},
+    Map<String, String> headers = const <String, String>{},
+    Map<String, dynamic> body = const <String, dynamic>{},
+    bool fakeIsolate = false,
+  }) {
+    return _send(
+      method: HttpMethod.delete,
+      host: host,
+      path: path,
+      query: query,
+      headers: headers,
+      body: body,
+      fakeIsolate: fakeIsolate,
+    );
+  }
+
+  @override
+  Cancelable<Response> patch({
+    required String host,
+    String path = '',
+    Map<String, String> query = const <String, String>{},
+    Map<String, String> headers = const <String, String>{},
+    Map<String, dynamic> body = const <String, dynamic>{},
+    bool fakeIsolate = false,
+  }) {
+    return _send(
+      method: HttpMethod.patch,
+      host: host,
+      path: path,
+      query: query,
+      headers: headers,
+      body: body,
+      fakeIsolate: fakeIsolate,
+    );
+  }
+
+  Cancelable<Response> _send({
+    required String method,
+    required String host,
+    String path = '',
+    Map<String, String> query = const <String, String>{},
+    Map<String, String> headers = const <String, String>{},
+    Map<String, dynamic> body = const <String, dynamic>{},
+    bool fakeIsolate = false,
+  }) {
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
-    final postBundle =
-        RequestBundle(fullPath, query, headers, timeout, body: body);
-    if (fakeIsolate) {
-      return Executor()
-          .fakeExecute(arg1: postBundle, arg2: log, fun2: _post)
-          .next(onValue: (value) {
-        return _checkedResponse(value, postBundle);
-      });
-    }
-    return Executor().execute(arg1: postBundle, arg2: log, fun2: _post).next(
-        onValue: (value) {
-      return _checkedResponse(value, postBundle);
+    final bundle = RequestBundle(method, fullPath, query, headers, body: body);
+    return request(bundle: bundle, fakeIsolate: fakeIsolate);
+  }
+
+  @override
+  Cancelable<Response> request({
+    required BaseRequestBundle bundle,
+    bool fakeIsolate = false,
+  }) {
+    final execution = fakeIsolate
+        ? Executor()
+            .fakeExecute(arg1: bundle, arg2: timeout, arg3: log, fun3: _request)
+        : Executor()
+            .execute(arg1: bundle, arg2: timeout, arg3: log, fun3: _request);
+
+    return execution.next(onValue: (value) {
+      return _checkedResponse(value, bundle);
     });
   }
-}
 
-class RequestBundle {
-  final String url;
-  final Map<String, String> query;
-  final Map<String, String> headers;
-  final Duration timeout;
-  final Map<String, dynamic> body;
+  static Future<Response> _request(
+      BaseRequestBundle bundle, Duration timeout, bool log) async {
+    try {
+      final request = await bundle.toRequest();
 
-  RequestBundle(String url, Map<String, String> query,
-      Map<String, String> headers, Duration timeout,
-      {this.body = const <String, dynamic>{}})
-      : url = url,
-        query = query,
-        timeout = timeout,
-        headers = headers;
+      if (log) {
+        if (request is http.Request) {
+          final bodyLine =
+              request.body.isEmpty ? '' : ',\nbody: ${request.body}';
+          print(
+              'url: [${request.method}] ${request.url},\nheaders: ${request.headers}$bodyLine');
+        } else {
+          print(
+              'url: [${request.method}] ${request.url},\nheaders: ${request.headers},\nbody: <unknown>');
+        }
+      }
 
-  @override
-  String toString() {
-    return 'url : $url\nquery: $query\nheaders: $headers\ntimeout: $timeout\n body: $body';
-  }
-}
+      final httpResponse = await request.send().timeout(timeout);
+      final bodyString = await httpResponse.stream.bytesToString();
+      final body = bodyString.isNotEmpty
+          ? jsonDecode(bodyString) as Map<String, dynamic>
+          : <String, dynamic>{};
 
-class Response {
-  final Map<String, dynamic> body;
-  final Map<String, String> headers;
-  final int statusCode;
-
-  Response(this.body, this.statusCode, this.headers);
-
-  @override
-  String toString() {
-    return 'statusCode : $statusCode\nheaders: $headers\n body: $body';
+      final isolatedResponse =
+          Response(body, httpResponse.statusCode, httpResponse.headers);
+      if (log) {
+        print(isolatedResponse);
+      }
+      return isolatedResponse;
+    } catch (e) {
+      rethrow;
+    }
   }
 }
