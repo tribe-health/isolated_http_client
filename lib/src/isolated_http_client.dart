@@ -18,52 +18,52 @@ abstract class HttpClient {
   Cancelable<Response> get({
     required String host,
     String path,
-    Map<String, String> query,
-    Map<String, String> headers,
+    Map<String, String>? query,
+    Map<String, String>? headers,
     bool fakeIsolate = false,
   });
 
   Cancelable<Response> head({
     required String host,
     String path,
-    Map<String, String> query,
-    Map<String, String> headers,
+    Map<String, String>? query,
+    Map<String, String>? headers,
     bool fakeIsolate = false,
   });
 
   Cancelable<Response> post({
     required String host,
     String path,
-    Map<String, String> query,
-    Map<String, String> headers,
-    Map<String, dynamic> body = const <String, Object>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
     bool fakeIsolate = false,
   });
 
   Cancelable<Response> put({
     required String host,
     String path,
-    Map<String, String> query,
-    Map<String, String> headers,
-    Map<String, dynamic> body = const <String, Object>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
     bool fakeIsolate = false,
   });
 
   Cancelable<Response> delete({
     required String host,
     String path,
-    Map<String, String> query,
-    Map<String, String> headers,
-    Map<String, dynamic> body = const <String, Object>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
     bool fakeIsolate = false,
   });
 
   Cancelable<Response> patch({
     required String host,
     String path,
-    Map<String, String> query,
-    Map<String, String> headers,
-    Map<String, dynamic> body = const <String, Object>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
     bool fakeIsolate = false,
   });
 
@@ -99,8 +99,8 @@ class IsolatedHttpClient implements HttpClient {
   Cancelable<Response> get({
     required String host,
     String path = '',
-    Map<String, String> query = const <String, String>{},
-    Map<String, String> headers = const <String, String>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
     bool fakeIsolate = false,
   }) {
     return _send(
@@ -117,8 +117,8 @@ class IsolatedHttpClient implements HttpClient {
   Cancelable<Response> head({
     required String host,
     String path = '',
-    Map<String, String> query = const <String, String>{},
-    Map<String, String> headers = const <String, String>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
     bool fakeIsolate = false,
   }) {
     return _send(
@@ -135,9 +135,9 @@ class IsolatedHttpClient implements HttpClient {
   Cancelable<Response> post({
     required String host,
     String path = '',
-    Map<String, String> query = const <String, String>{},
-    Map<String, String> headers = const <String, String>{},
-    Map<String, dynamic> body = const <String, dynamic>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
     bool fakeIsolate = false,
   }) {
     return _send(
@@ -155,9 +155,9 @@ class IsolatedHttpClient implements HttpClient {
   Cancelable<Response> put({
     required String host,
     String path = '',
-    Map<String, String> query = const <String, String>{},
-    Map<String, String> headers = const <String, String>{},
-    Map<String, dynamic> body = const <String, dynamic>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
     bool fakeIsolate = false,
   }) {
     return _send(
@@ -175,9 +175,9 @@ class IsolatedHttpClient implements HttpClient {
   Cancelable<Response> delete({
     required String host,
     String path = '',
-    Map<String, String> query = const <String, String>{},
-    Map<String, String> headers = const <String, String>{},
-    Map<String, dynamic> body = const <String, dynamic>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
     bool fakeIsolate = false,
   }) {
     return _send(
@@ -195,9 +195,9 @@ class IsolatedHttpClient implements HttpClient {
   Cancelable<Response> patch({
     required String host,
     String path = '',
-    Map<String, String> query = const <String, String>{},
-    Map<String, String> headers = const <String, String>{},
-    Map<String, dynamic> body = const <String, dynamic>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
     bool fakeIsolate = false,
   }) {
     return _send(
@@ -215,11 +215,14 @@ class IsolatedHttpClient implements HttpClient {
     required String method,
     required String host,
     String path = '',
-    Map<String, String> query = const <String, String>{},
-    Map<String, String> headers = const <String, String>{},
-    Map<String, dynamic> body = const <String, dynamic>{},
+    Map<String, String>? query,
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
     bool fakeIsolate = false,
   }) {
+    query ??= <String, String>{};
+    headers ??= <String, String>{};
+    body ??= <String, dynamic>{};
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
     final bundle = RequestBundle(method, fullPath, query, headers, body: body);
