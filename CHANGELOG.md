@@ -1,2 +1,2 @@
-## 1.2.4
-- added fake flag
+## 1.4.2
+- other http methods
