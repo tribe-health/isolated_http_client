@@ -54,6 +54,7 @@ class MultipartRequestBundle extends BaseRequestBundle {
   @override
   Future<http.BaseRequest> toRequest() async {
     final request = http.MultipartRequest(method, Uri.parse(url));
+    request.headers.addAll(headers);
     request.fields.addAll(fields);
     for (final file in files) {
       final multipartFile = await file.toMultipartFile();
