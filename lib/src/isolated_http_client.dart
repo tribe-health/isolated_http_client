@@ -68,7 +68,7 @@ abstract class HttpClient {
   });
 
   Cancelable<Response> request({
-    required BaseRequestBundle bundle,
+    required RequestBundle bundle,
     bool fakeIsolate = false,
   });
 }
@@ -80,7 +80,7 @@ class IsolatedHttpClient implements HttpClient {
   IsolatedHttpClient(this.timeout, this.log);
 
   Response _checkedResponse(
-      Response response, BaseRequestBundle requestBundle) {
+      Response response, RequestBundle requestBundle) {
     final statusCode = response.statusCode;
     if (statusCode >= 200 && statusCode < 300) return response;
     if (statusCode == 401) {
@@ -225,13 +225,13 @@ class IsolatedHttpClient implements HttpClient {
     body ??= <String, dynamic>{};
     final queryString = makeQuery(query);
     final fullPath = '$host$path$queryString';
-    final bundle = RequestBundle(method, fullPath, query, headers, body: body);
+    final bundle = RequestBundleWithBody(method, fullPath, query, headers, body: body);
     return request(bundle: bundle, fakeIsolate: fakeIsolate);
   }
 
   @override
   Cancelable<Response> request({
-    required BaseRequestBundle bundle,
+    required RequestBundle bundle,
     bool fakeIsolate = false,
   }) {
     final execution = fakeIsolate
@@ -246,7 +246,7 @@ class IsolatedHttpClient implements HttpClient {
   }
 
   static Future<Response> _request(
-      BaseRequestBundle bundle, Duration timeout, bool log) async {
+      RequestBundle bundle, Duration timeout, bool log) async {
     try {
       final request = await bundle.toRequest();
 

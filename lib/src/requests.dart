@@ -4,13 +4,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
-abstract class BaseRequestBundle {
+abstract class RequestBundle {
   final String method;
   final String url;
   final Map<String, String> query;
   final Map<String, String> headers;
 
-  BaseRequestBundle(this.method, this.url, this.query, this.headers);
+  RequestBundle(this.method, this.url, this.query, this.headers);
 
   FutureOr<http.BaseRequest> toRequest();
 
@@ -20,9 +20,9 @@ abstract class BaseRequestBundle {
   }
 }
 
-class RequestBundle extends BaseRequestBundle {
+class RequestBundleWithBody extends RequestBundle {
   final Map<String, dynamic> body;
-  RequestBundle(String method, String url, Map<String, String> query,
+  RequestBundleWithBody(String method, String url, Map<String, String> query,
       Map<String, String> headers,
       {this.body = const <String, dynamic>{}})
       : super(method, url, query, headers);
@@ -42,7 +42,7 @@ class RequestBundle extends BaseRequestBundle {
   }
 }
 
-class MultipartRequestBundle extends BaseRequestBundle {
+class MultipartRequestBundle extends RequestBundle {
   final List<MultipartBundleFile> files;
   final Map<String, String> fields;
 

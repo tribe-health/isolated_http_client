@@ -65,7 +65,7 @@ Future<void> delete() async {
 
 Future<void> postRequest() async {
   final r = await client.request(
-    bundle: RequestBundle(
+    bundle: RequestBundleWithBody(
       HttpMethod.post,
       'https://httpbin.org/post',
       {},
